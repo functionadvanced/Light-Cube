@@ -1,0 +1,103 @@
+<!doctype html>
+<html>
+	<head>
+		<title>Light Cube</title>
+		<link rel="stylesheet" href="atelier-forest-dark.css">
+		<script src="three.min.js"></script>
+		<script src="highlight.pack.js"></script>
+		<style>
+			body{
+				background-color:#1b1918;
+			}
+			#canvas3d{
+				position: absolute;
+				width: 500px;
+				height: 500px;
+			}
+			pre{
+				margin-left:500px;
+			}
+		</style>
+		
+	</head>
+	<body>
+		<div id="canvas3d"></div>
+		<script>hljs.initHighlightingOnLoad();</script>
+		<script id = "kk">
+width = document.getElementById('canvas3d').clientWidth;
+height = document.getElementById('canvas3d').clientHeight;
+var scene = new THREE.Scene();
+var camera = new THREE.PerspectiveCamera( 45, width/height, 0.1, 1000 );
+var renderer = new THREE.WebGLRenderer({antialias:true,alpha:true});
+renderer.setClearColor("black", 0);
+renderer.setSize(width, height);
+document.getElementById('canvas3d').appendChild(renderer.domElement);
+var geometry = new THREE.BoxGeometry(0.4, 0.4, 0.4);
+var material = new THREE.MeshBasicMaterial( { color: 0x0000ff } );
+var cube = new Array();
+for (i = 0;i < 512;++i)
+	cube[i] = new THREE.Mesh(geometry, material);
+for (i = 0;i < 8;++i)
+	for (j = 0;j < 8;++j)
+		for (k = 0;k < 8;++k)
+			cube[i * 64 + j * 8 + k].position.set((i-3.5) * 2.3, (j-3.5) * 2.3, (k-3.5) * 2.3);
+camera.position.set(27, -3, 30);
+camera.up.set(0, 0, 1);
+camera.lookAt({x:0, y:0, z:0});
+renderer.render(scene, camera);
+function TurnOn(pos){
+	scene.add(cube[pos]);
+}
+function TurnOff(pos){
+	scene.remove(cube[pos]);
+}
+function GradualColor(H, S, L){
+	material.color.setHSL(H, S, L);
+}
+var states = 0;
+var render = function(i) {
+	if (i >= 512)	{
+		i = 0;
+		++states;
+		if (states == 6)
+			states = 0;
+	}
+	switch(states)	{
+	case 0:
+		for (k = 0;k < 8;++k)
+			TurnOn(i + k);
+		i += 8;
+		break;
+	case 1:
+		for (k = 0;k < 8;++k)
+			TurnOff(511 - (i + k));
+		i += 8;
+		break;
+	case 2:
+		for (k = 0;k < 64;++k)
+			TurnOn(i + k);
+		i += 64;
+		break;
+	case 3:
+		for (k = 0;k < 64;++k)
+			TurnOff(511 - (i + k));
+		i += 64;
+		break;
+	case 4:
+		for (;i < 512;++i)
+			TurnOn(i);
+	default:
+		GradualColor(i / 512, 1, 0.5);
+		++i;
+		scene.rotateX(0.01);
+		break;
+	}
+	renderer.render(scene, camera);
+	scene.rotateZ(0.01);
+	setTimeout("render("+i+")", 20);
+}
+render(0);
+		</script>
+		<pre><code><script>document.write(document.getElementById("kk").innerText);</script></code></pre>
+	</body>
+</html>
